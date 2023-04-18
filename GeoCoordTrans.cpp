@@ -83,4 +83,104 @@ Vector2d GeoCoordTrans::XY2BL(Vector2d pPoint, Datum pDatum, bool pIs3Dgree, boo
 	return Vector2d(B, L);
 }
 
+Vector3d GeoCoordTrans::BLH2XYH(Vector3d pPoint, Datum pDatum, bool pIs3Dgree, bool pIsUniCoord)
+{
+	Vector2d lPointXY = BL2XY(Vector2d(pPoint(0), pPoint(1)), pDatum, pIs3Dgree, pIsUniCoord);
+	return Vector3d(lPointXY(0), lPointXY(1), pPoint(2));
+}
 
+Vector3d GeoCoordTrans::XYH2BLH(Vector3d pPoint, Datum pDatum, bool pIs3Dgree, bool pIsUniCoord)
+{
+	Vector2d lPointBL = XY2BL(Vector2d(pPoint(0), pPoint(1)), pDatum, pIs3Dgree, pIsUniCoord);
+	return Vector3d(lPointBL(0), lPointBL(1), pPoint(2));
+}
+
+MatrixXd GeoCoordTrans::BLH2XYZ(MatrixXd pPoints, Datum pDatum)
+{
+	MatrixXd lPoints = MatrixXd::Constant(pPoints.rows(), 3, 0.0);
+	for (int i = 0; i < pPoints.rows(); i++)
+	{
+		Vector3d lPointBLH = pPoints.row(i);
+		Vector3d lPointXYZ = BLH2XYZ(lPointBLH, pDatum);
+		lPoints.row(i) = lPointXYZ;
+	}
+	return lPoints;
+}
+
+MatrixXd GeoCoordTrans::XYZ2BLH(MatrixXd pPoints, Datum pDatum)
+{
+	MatrixXd lPoints = MatrixXd::Constant(pPoints.rows(), 3, 0.0);
+	for (int i = 0; i < pPoints.rows(); i++)
+	{
+		Vector3d lPointXYZ = pPoints.row(i);
+		Vector3d lPointBLH = XYZ2BLH(lPointXYZ, pDatum);
+		lPoints.row(i) = lPointBLH;
+	}
+	return lPoints;
+}
+
+MatrixXd GeoCoordTrans::BLH2XYH(MatrixXd pPoints, Datum pDatum, bool pIs3Dgree, bool pIsUniCoord)
+{
+	MatrixXd lPoints = MatrixXd::Constant(pPoints.rows(), 3, 0.0);
+	for (int i = 0; i < pPoints.rows(); i++)
+	{
+		Vector3d lPointBLH = pPoints.row(i);
+		Vector3d lPointXY = BLH2XYH(lPointBLH, pDatum, pIs3Dgree, pIsUniCoord);
+		lPoints.row(i) = lPointXY;
+	}
+	return lPoints;
+}
+
+MatrixXd GeoCoordTrans::XYH2BLH(MatrixXd pPoints, Datum pDatum, bool pIs3Dgree, bool pIsUniCoord)
+{
+	MatrixXd lPoints = MatrixXd::Constant(pPoints.rows(), 3, 0.0);
+	for (int i = 0; i < pPoints.rows(); i++)
+	{
+		Vector3d lPointXYH = pPoints.row(i);
+		Vector3d lPointBLH = XYH2BLH(lPointXYH, pDatum, pIs3Dgree, pIsUniCoord);
+		lPoints.row(i) = lPointBLH;
+	}
+	return lPoints;
+}
+
+std::string GeoCoordTrans::radAng2DmsDeg(double pAngle)
+{
+	double degree = pAngle * RAD_TO_DEG;
+	int d = (int)degree;
+	degree = std::abs((degree - d) * 60);
+	int m = (int)degree;
+	degree = std::abs((degree - m) * 60);
+
+	std::stringstream ss;
+	if (pAngle < 0)
+		ss << "-";
+	if (d != 0)
+		ss << d << "бу";
+	if (m != 0 || d != 0)
+		ss << m << "'";
+	ss << std::fixed << degree << "\"";
+	return ss.str();
+}
+
+std::string GeoCoordTrans::decDeg2DmsDeg(double pAngle)
+{
+	int d = (int)pAngle;
+	pAngle = std::abs((pAngle - d) * 60);
+	int m = (int)pAngle;
+	pAngle = std::abs((pAngle - m) * 60);
+	if (pAngle >= 59.9999995)
+	{
+		pAngle = 0;
+		m += 1;
+	}
+
+	std::stringstream ss;
+	if (pAngle < 0)
+		ss << "-";
+	if (d != 0)
+		ss << d << "бу";
+	if (m != 0 || d != 0)
+		ss << m << "'";
+	ss << std::fixed << pAngle << "\"";
+	return ss.str();
+}
