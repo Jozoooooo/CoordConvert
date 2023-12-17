@@ -14,7 +14,7 @@ RowVectorXd Para4::cal4Args(MatrixXd pSrcPoints, MatrixXd pDesPoints)
 {
 	MatrixXd lMatB = points2B(pSrcPoints);
 	MatrixXd lMatL = points2L(pSrcPoints, pDesPoints);
-	RowVector4d lPara = ((lMatB.transpose().eval() * lMatB).inverse() * lMatB.transpose().eval() * lMatL).transpose();
+	MatrixXd lPara = lMatB.colPivHouseholderQr().solve(lMatL);
 	mPara4(0) = lPara(0);
 	mPara4(1) = lPara(1);
 	mPara4(2) = atan(lPara(3) / (lPara(2) + 1));

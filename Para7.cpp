@@ -11,13 +11,14 @@ Vector3d Para7::cooConv(Vector3d pPoint)
 
 RowVectorXd Para7::cal7Args(MatrixXd pSrcPoints, MatrixXd pDesPoints)
 {
-	RowVectorXd lPara = RowVectorXd::Constant(7, 1.0);
+	MatrixXd lPara = RowVectorXd::Constant(7, 1.0);
 	while (lPara.array().abs().sum() > 0.00001)
 	{
 		MatrixXd lMatB = points2B(pSrcPoints);
 		MatrixXd lMatL = points2L(pSrcPoints, pDesPoints);
-		lPara = ((lMatB.transpose().eval() * lMatB).inverse() * lMatB.transpose().eval() * lMatL).transpose();
-		mPara7 += lPara;
+		lPara = lMatB.colPivHouseholderQr().solve(lMatL);
+		for (int i = 0; i < 7; i++)
+			mPara7(i) += lPara(i);
 	}
 
 	RowVectorXd lRMS = RowVectorXd::Constant(pSrcPoints.rows(), 0.0);

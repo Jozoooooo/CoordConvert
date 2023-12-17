@@ -39,13 +39,13 @@ Vector3d GeoCoordTrans::XYZ2BLH(Vector3d pPoint, Datum pDatum)
 	return Vector3d(B, L, H);
 }
 
-Vector2d GeoCoordTrans::BL2XY(Vector2d pPoint, Datum pDatum, bool pIs3Dgree, bool pIsUniCoord)
+Vector2d GeoCoordTrans::BL2XY(Vector2d pPoint, Datum pDatum)
 {
 	double B = pPoint(0) * DEG_TO_RAD;
 	double L = pPoint(1);
 
-	int bN = pIs3Dgree ? round(L / 3) : floor(L / 6 + 1);	// 带号
-	int l0 = pIs3Dgree ? 3 * bN : 6 * bN - 3;				// 中央经线
+	int bN = mIs3Degree ? round(L / 3) : floor(L / 6 + 1);	// 带号
+	int l0 = mIs3Degree ? 3 * bN : 6 * bN - 3;				// 中央经线
 	double l = (L - l0) * DEG_TO_RAD;						// 经差
 	double X = pDatum.getX(B);								// 子午线弧长
 	double N = pDatum.getN(B);								// 卯酉圈曲率半径
@@ -56,19 +56,19 @@ Vector2d GeoCoordTrans::BL2XY(Vector2d pPoint, Datum pDatum, bool pIs3Dgree, boo
 	double x = X + N * t * m * m * (0.5 + (5 - t * t + 9 * ns + 4 * ns * ns) * m * m / 24 + (61 - 58 * t * t + pow(t, 4)) * pow(m, 4) / 720);
 	double y = N * m * (1 + (1 - t * t + ns) * m * m / 6 + (5 - 18 * t * t + pow(t, 4) + 14 * ns - 58 * ns * t * t) * pow(m, 4) / 120);
 
-	y = pIsUniCoord ? y + 500000 + bN * 1000000.0 : y;
+	y = mIsUniCoord ? y + 500000 + bN * 1000000.0 : y;
 
 	return Vector2d(x, y);
 }
 
-Vector2d GeoCoordTrans::XY2BL(Vector2d pPoint, Datum pDatum, bool pIs3Dgree, bool pIsUniCoord)
+Vector2d GeoCoordTrans::XY2BL(Vector2d pPoint, Datum pDatum)
 {
 	double x = pPoint(0);
 	double y = pPoint(1);
 
-	int bN = pIsUniCoord ? y / 1000000.0 : 0;			// 带号
-	y = pIsUniCoord ? y - bN * 1000000.0 - 500000 : y;	// 修正的y坐标
-	int l0 = pIs3Dgree ? 3 * bN : 6 * bN - 3;			// 中央经线
+	int bN = mIsUniCoord ? y / 1000000.0 : 0;			// 带号
+	y = mIs3Degree ? y - bN * 1000000.0 - 500000 : y;	// 修正的y坐标
+	int l0 = mIs3Degree ? 3 * bN : 6 * bN - 3;			// 中央经线
 	double Bf = pDatum.getBf(x);						// 底点纬度
 	double Mf = pDatum.getM(Bf);						// 子午圈曲率半径
 	double Nf = pDatum.getN(Bf);						// 卯酉圈曲率半径
@@ -83,15 +83,15 @@ Vector2d GeoCoordTrans::XY2BL(Vector2d pPoint, Datum pDatum, bool pIs3Dgree, boo
 	return Vector2d(B, L);
 }
 
-Vector3d GeoCoordTrans::BLH2XYH(Vector3d pPoint, Datum pDatum, bool pIs3Dgree, bool pIsUniCoord)
+Vector3d GeoCoordTrans::BLH2XYH(Vector3d pPoint, Datum pDatum)
 {
-	Vector2d lPointXY = BL2XY(Vector2d(pPoint(0), pPoint(1)), pDatum, pIs3Dgree, pIsUniCoord);
+	Vector2d lPointXY = BL2XY(Vector2d(pPoint(0), pPoint(1)), pDatum);
 	return Vector3d(lPointXY(0), lPointXY(1), pPoint(2));
 }
 
-Vector3d GeoCoordTrans::XYH2BLH(Vector3d pPoint, Datum pDatum, bool pIs3Dgree, bool pIsUniCoord)
+Vector3d GeoCoordTrans::XYH2BLH(Vector3d pPoint, Datum pDatum)
 {
-	Vector2d lPointBL = XY2BL(Vector2d(pPoint(0), pPoint(1)), pDatum, pIs3Dgree, pIsUniCoord);
+	Vector2d lPointBL = XY2BL(Vector2d(pPoint(0), pPoint(1)), pDatum);
 	return Vector3d(lPointBL(0), lPointBL(1), pPoint(2));
 }
 
@@ -119,25 +119,49 @@ MatrixXd GeoCoordTrans::XYZ2BLH(MatrixXd pPoints, Datum pDatum)
 	return lPoints;
 }
 
-MatrixXd GeoCoordTrans::BLH2XYH(MatrixXd pPoints, Datum pDatum, bool pIs3Dgree, bool pIsUniCoord)
+MatrixXd GeoCoordTrans::BL2XY(MatrixXd pPoints, Datum pDatum)
 {
-	MatrixXd lPoints = MatrixXd::Constant(pPoints.rows(), 3, 0.0);
+	MatrixXd lPoints = MatrixXd::Constant(pPoints.rows(), 2, 0.0);
 	for (int i = 0; i < pPoints.rows(); i++)
 	{
-		Vector3d lPointBLH = pPoints.row(i);
-		Vector3d lPointXY = BLH2XYH(lPointBLH, pDatum, pIs3Dgree, pIsUniCoord);
+		Vector2d lPointBL = pPoints.row(i);
+		Vector2d lPointXY = BL2XY(lPointBL, pDatum);
 		lPoints.row(i) = lPointXY;
 	}
 	return lPoints;
 }
 
-MatrixXd GeoCoordTrans::XYH2BLH(MatrixXd pPoints, Datum pDatum, bool pIs3Dgree, bool pIsUniCoord)
+MatrixXd GeoCoordTrans::XY2BL(MatrixXd pPoints, Datum pDatum)
+{
+	MatrixXd lPoints = MatrixXd::Constant(pPoints.rows(), 2, 0.0);
+	for (int i = 0; i < pPoints.rows(); i++)
+	{
+		Vector2d lPointXY = pPoints.row(i);
+		Vector2d lPointBL = XY2BL(lPointXY, pDatum);
+		lPoints.row(i) = lPointBL;
+	}
+	return lPoints;
+}
+
+MatrixXd GeoCoordTrans::BLH2XYH(MatrixXd pPoints, Datum pDatum)
+{
+	MatrixXd lPoints = MatrixXd::Constant(pPoints.rows(), 3, 0.0);
+	for (int i = 0; i < pPoints.rows(); i++)
+	{
+		Vector3d lPointBLH = pPoints.row(i);
+		Vector3d lPointXYH = BLH2XYH(lPointBLH, pDatum);
+		lPoints.row(i) = lPointXYH;
+	}
+	return lPoints;
+}
+
+MatrixXd GeoCoordTrans::XYH2BLH(MatrixXd pPoints, Datum pDatum)
 {
 	MatrixXd lPoints = MatrixXd::Constant(pPoints.rows(), 3, 0.0);
 	for (int i = 0; i < pPoints.rows(); i++)
 	{
 		Vector3d lPointXYH = pPoints.row(i);
-		Vector3d lPointBLH = XYH2BLH(lPointXYH, pDatum, pIs3Dgree, pIsUniCoord);
+		Vector3d lPointBLH = XYH2BLH(lPointXYH, pDatum);
 		lPoints.row(i) = lPointBLH;
 	}
 	return lPoints;
