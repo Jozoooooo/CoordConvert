@@ -11,6 +11,9 @@
 
 using namespace Eigen;
 
+/**
+ * @brief 七参数坐标转换类.
+ */
 class Para7
 {
   public:

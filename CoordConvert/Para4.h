@@ -11,13 +11,16 @@
 
 using namespace Eigen;
 
+/**
+ * @brief 四参数坐标转换类.
+ */
 class Para4
 {
   public:
     /**
      * @brief 使用宏重载类的new运算符以确保分配的内存正确对齐.
      */
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
 
     /**
      * @brief 四参数 ΔX ΔY α K.

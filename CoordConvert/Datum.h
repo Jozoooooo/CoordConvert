@@ -4,15 +4,19 @@
  * @author Jozoooooo
  * @date   April 2023
  *********************************************************************/
+
 #pragma once
 
 #include <cmath>
 
+/**
+ * @brief 地球椭球体类.
+ */
 class Datum
 {
   public:
     /**
-     * @brief 地球椭球体.
+     * @brief 地球椭球体构造函数.
      * @param _a 长半轴
      * @param _f 扁率
      */
@@ -101,13 +105,40 @@ class Datum
         return Bf;
     }
 
-    double a;    // 长半轴
-    double b;    // 短半轴
-    double f;    // 扁率
-    double e1;   // 第一偏心率
-    double e2;   // 第二偏心率
-    double es1;  // 第一偏心率的平方
-    double es2;  // 第二偏心率的平方
+    /**
+     * @brief 长半轴.
+     */
+    double a;
+
+    /**
+     * @brief 短半轴.
+     */
+    double b;
+
+    /**
+     * @brief 扁率.
+     */
+    double f;
+
+    /**
+     * @brief 第一偏心率.
+     */
+    double e1;
+
+    /**
+     * @brief 第二偏心率.
+     */
+    double e2;
+
+    /**
+     * @brief 第一偏心率的平方.
+     */
+    double es1;
+
+    /**
+     * @brief 第二偏心率的平方.
+     */
+    double es2;
 };
 
 static Datum KARSS = Datum(6378245.0, 1 / 298.3);             // 北京54: Krassovsky, 1942.

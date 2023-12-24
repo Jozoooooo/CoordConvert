@@ -15,6 +15,9 @@
 
 using namespace Eigen;
 
+/**
+ * @brief 地理坐标转换类.
+ */
 class GeoCoordTrans
 {
   public:
@@ -94,7 +97,7 @@ class GeoCoordTrans
      * @brief 高斯反算直角坐标点集.
      * @param pPoints 高斯平面直角坐标 {(x, y)}
      * @param pDatum 地球椭球体
-     * @return 大地坐标点集 {(大地纬度B, 大地经度L)
+     * @return 大地坐标点集 {(大地纬度B, 大地经度L)}
      */
     MatrixXd XY2BL(MatrixXd pPoints, Datum pDatum);
 
